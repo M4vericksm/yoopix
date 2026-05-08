@@ -93,7 +93,7 @@ export default function Home() {
       <header style={{ padding: '56px 24px 16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
           <div className="serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 10 }}>
-            <span style={{ color: 'var(--stone-900)' }}>You</span><span style={{ color: 'var(--amber-500)' }}>Pix</span>
+            <span style={{ color: 'var(--stone-900)' }}>Yoo</span><span style={{ color: 'var(--amber-500)' }}>pix</span>
           </div>
           <h1 className="serif" style={{ fontSize: 34, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
             {greeting()},<br/>
