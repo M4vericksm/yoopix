@@ -107,7 +107,7 @@ export default function Result() {
 
   function handleWhatsapp() {
     const message = `💸 *${billRef.description || 'Rolê'}* — sua parte é ${formatBRL(selectedP.amount)}\n\nChave Pix: ${billRef.receiver.pixKey.value}\n\nCódigo: ${brCode}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   }
 
   function togglePaid(pid: string) {
