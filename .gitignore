@@ -20,6 +20,9 @@ dist-ssr
 *.key
 *.p12
 
+# Claude Code (dev tool — não deve ir ao repo)
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
