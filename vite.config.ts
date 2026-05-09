@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon-192.png', 'icon-512.png'],
       manifest: {
-        name: 'Yoopix — Racha conta com Pix',
+        name: 'Yoopix',
         short_name: 'Yoopix',
         description: 'E o Pix? Divida a conta e gere QR Pix automático',
         theme_color: '#1c1917',
