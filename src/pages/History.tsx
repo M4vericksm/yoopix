@@ -36,7 +36,7 @@ function BillRow({ bill, onClick }: { bill: Bill; onClick: () => void }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--stone-900)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {bill.description || 'Rolê'}
+          {bill.description || `Rolê #${bill.billNumber ?? ''}`}
         </div>
         <div style={{ fontSize: 12, color: 'var(--stone-400)' }}>
           {formatDate(bill.createdAt)} · {formatBRL(bill.totalAmount)}
