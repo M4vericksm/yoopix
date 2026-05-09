@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { PixKeyType } from '@/types';
 
 export const validateCPF = (cpf: string): boolean => {
   const clean = cpf.replace(/\D/g, '');
@@ -16,27 +16,25 @@ export const validateCPF = (cpf: string): boolean => {
   return digit === parseInt(clean[10]);
 };
 
-export const pixKeySchema = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('email'),
-    value: z.string().email('E-mail inválido'),
-  }),
-  z.object({
-    type: z.literal('phone'),
-    value: z.string().regex(/^\d{10,11}$/, 'Telefone inválido (ex: 11999998888)'),
-  }),
-  z.object({
-    type: z.literal('cpf'),
-    value: z.string().refine(validateCPF, 'CPF inválido'),
-  }),
-  z.object({
-    type: z.literal('cnpj'),
-    value: z.string().regex(/^\d{14}$/, 'CNPJ inválido (14 dígitos sem pontuação)'),
-  }),
-  z.object({
-    type: z.literal('random'),
-    value: z.string().uuid('Chave aleatória inválida (deve ser UUID)'),
-  }),
-]);
+export function detectPixKeyType(value: string): PixKeyType | null {
+  const v = value.trim();
+  if (!v) return null;
+  if (v.includes('@')) return 'email';
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)) return 'random';
+  const digits = v.replace(/[\s.\-\/]/g, '');
+  if (/^\d+$/.test(digits)) {
+    if (digits.length === 14) return 'cnpj';
+    if (digits.length === 11) return validateCPF(digits) ? 'cpf' : 'phone';
+    if (digits.length === 10) return 'phone';
+  }
+  return null;
+}
 
-export type PixKeyInput = z.infer<typeof pixKeySchema>;
+export const PIX_TYPE_LABEL: Record<PixKeyType, string> = {
+  phone:  'Telefone',
+  email:  'E-mail',
+  cpf:    'CPF',
+  cnpj:   'CNPJ',
+  random: 'Chave aleatória',
+};
+
