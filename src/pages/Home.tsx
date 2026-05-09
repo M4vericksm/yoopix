@@ -91,7 +91,7 @@ export default function Home() {
   return (
     <div className="screen-in" style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', background: 'var(--stone-100)' }}>
       {/* Nav bar — app name + history */}
-      <div style={{ padding: '18px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '48px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/favicon.png" style={{ width: 28, height: 28, borderRadius: 8 }} alt="Yoopix"/>
           <div className="serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
@@ -104,14 +104,14 @@ export default function Home() {
       </div>
 
       {/* Greeting */}
-      <div style={{ padding: '24px 24px 16px' }}>
+      <div style={{ padding: '20px 24px 16px' }}>
         <h1 className="serif" style={{ fontSize: 36, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
           {greeting()}
         </h1>
         <div className="serif" style={{ fontSize: 18, color: 'var(--stone-400)', marginTop: 3, fontWeight: 400, letterSpacing: '-0.01em' }}>Bora dividir essa conta?</div>
       </div>
 
-      <div style={{ padding: '0 24px 40px', flex: 1 }} className="no-scrollbar">
+      <div style={{ padding: '8px 24px 40px', flex: 1 }} className="no-scrollbar">
         <HeroCard onClick={() => navigate('/novo')}/>
 
         {recent.length > 0 ? (
