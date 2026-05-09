@@ -27,7 +27,9 @@ function HeroCard({ onClick }: { onClick: () => void }) {
       <div style={{ position: 'absolute', top: -20, right: -20, width: 160, height: 160, background: 'var(--amber-400)', borderRadius: '50%', opacity: 0.18 }}/>
       <div style={{ position: 'absolute', top: 10, right: 10, width: 80, height: 80, background: 'var(--amber-400)', borderRadius: '50%', opacity: 0.28 }}/>
       <div style={{ position: 'relative', padding: '28px 28px 32px' }}>
-        <img src="/favicon.png" style={{ width: 40, height: 40, borderRadius: 12, marginBottom: 16, display: 'block' }} alt=""/>
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 14, background: 'var(--amber-400)', marginBottom: 16 }}>
+          <I.Receipt size={22} stroke={1.8}/>
+        </div>
         <div style={{ fontSize: 22, fontWeight: 500, color: 'white', fontFamily: "'Fraunces', serif", letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 6 }}>
           Novo rolê
         </div>
@@ -68,7 +70,7 @@ function BillRow({ bill, onClick }: { bill: Bill; onClick: () => void }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--stone-900)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {bill.description || 'Rolê'}
+          {bill.description || `Rolê #${bill.billNumber ?? ''}`}
         </div>
         <div style={{ fontSize: 12, color: 'var(--stone-400)' }}>
           {formatDate(bill.createdAt)} · {formatBRL(bill.totalAmount)}
@@ -99,7 +101,7 @@ export default function Home() {
           <h1 className="serif" style={{ fontSize: 34, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
             {greeting()}
           </h1>
-          <div style={{ fontSize: 14, color: 'var(--stone-500)', marginTop: 4 }}>bora dividir essa conta?</div>
+          <div className="serif" style={{ fontSize: 18, color: 'var(--stone-400)', marginTop: 2, fontWeight: 400, letterSpacing: '-0.01em' }}>Bora dividir essa conta?</div>
         </div>
         <button onClick={() => navigate('/historico')} style={{ width: 44, height: 44, borderRadius: 22, background: 'white', border: '1px solid var(--stone-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--stone-700)', flexShrink: 0 }}>
           <I.History size={19}/>

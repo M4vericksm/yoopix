@@ -22,6 +22,7 @@ export type SplitMode = 'equal' | 'custom';
 
 export interface Bill {
   id: string;
+  billNumber: number;
   createdAt: number;
   description: string;
   totalAmount: number; // centavos
