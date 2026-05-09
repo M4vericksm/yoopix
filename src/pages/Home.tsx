@@ -90,25 +90,28 @@ export default function Home() {
 
   return (
     <div className="screen-in" style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', background: 'var(--stone-100)' }}>
-      <header style={{ padding: '56px 24px 20px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-            <img src="/favicon.png" style={{ width: 30, height: 30, borderRadius: 8 }} alt="Yoopix"/>
-            <div className="serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
-              <span style={{ color: 'var(--stone-900)' }}>Yoo</span><span style={{ color: 'var(--amber-500)' }}>pix</span>
-            </div>
+      {/* Nav bar — app name + history */}
+      <div style={{ padding: '52px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="/favicon.png" style={{ width: 26, height: 26, borderRadius: 7 }} alt="Yoopix"/>
+          <div className="serif" style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
+            <span style={{ color: 'var(--stone-900)' }}>Yoo</span><span style={{ color: 'var(--amber-500)' }}>pix</span>
           </div>
-          <h1 className="serif" style={{ fontSize: 34, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
-            {greeting()}
-          </h1>
-          <div className="serif" style={{ fontSize: 18, color: 'var(--stone-400)', marginTop: 6, fontWeight: 400, letterSpacing: '-0.01em' }}>Bora dividir essa conta?</div>
         </div>
-        <button onClick={() => navigate('/historico')} style={{ width: 44, height: 44, borderRadius: 22, background: 'white', border: '1px solid var(--stone-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--stone-700)', flexShrink: 0 }}>
-          <I.History size={19}/>
+        <button onClick={() => navigate('/historico')} style={{ width: 40, height: 40, borderRadius: 20, background: 'white', border: '1px solid var(--stone-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--stone-700)', flexShrink: 0 }}>
+          <I.History size={18}/>
         </button>
-      </header>
+      </div>
 
-      <div style={{ padding: '16px 24px 40px', flex: 1 }} className="no-scrollbar">
+      {/* Greeting */}
+      <div style={{ padding: '28px 24px 16px' }}>
+        <h1 className="serif" style={{ fontSize: 36, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
+          {greeting()}
+        </h1>
+        <div className="serif" style={{ fontSize: 18, color: 'var(--stone-400)', marginTop: 3, fontWeight: 400, letterSpacing: '-0.01em' }}>Bora dividir essa conta?</div>
+      </div>
+
+      <div style={{ padding: '0 24px 40px', flex: 1 }} className="no-scrollbar">
         <HeroCard onClick={() => navigate('/novo')}/>
 
         {recent.length > 0 ? (
