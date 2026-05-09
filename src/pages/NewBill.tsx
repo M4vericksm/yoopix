@@ -20,7 +20,6 @@ export default function NewBill() {
 
   const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription]     = useState('');
-  const [name, setName]                   = useState(prefs.defaultName ?? '');
   const [pixKey, setPixKey]               = useState(prefs.defaultPixKey?.value ?? '');
   const [errors, setErrors]               = useState<Record<string, string>>({});
 
@@ -45,11 +44,11 @@ export default function NewBill() {
   function handleNext() {
     if (!validate()) return;
     const type = detectedType!;
-    savePrefs({ defaultName: name.trim() || undefined, defaultPixKey: { type, value: pixKey.trim() } });
+    savePrefs({ defaultPixKey: { type, value: pixKey.trim() } });
     const draft: BillDraft = {
       totalAmount: amountCents,
       description: description.trim(),
-      receiver: { name: name.trim() || undefined, city: 'BRASIL', pixKey: { type, value: pixKey.trim() } },
+      receiver: { city: 'BRASIL', pixKey: { type, value: pixKey.trim() } },
     };
     navigate('/novo/dividir', { state: { draft } });
   }
@@ -110,21 +109,6 @@ export default function NewBill() {
             />
           </div>
 
-          <div style={{ background: 'white', borderRadius: 16, padding: '16px', border: '1px solid var(--stone-200)' }}>
-            <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--stone-500)', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", marginBottom: 14 }}>
-              Quem recebe
-            </div>
-            <Input
-              label="Seu nome"
-              optional
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="João Silva"
-            />
-            <div style={{ fontSize: 11, color: 'var(--stone-400)', marginTop: 8, lineHeight: 1.4 }}>
-              Recomendado pra galera te reconhecer na cobrança
-            </div>
-          </div>
         </div>
       </div>
 
