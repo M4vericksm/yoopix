@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBills } from '@/hooks/useBills';
 import { formatBRL, formatDate } from '@/lib/format';
@@ -8,20 +8,80 @@ import { I } from '@/components/icons';
 import type { Bill } from '@/types';
 
 const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const LONG_PRESS_MS = 550;
 
-function BillRow({ bill, onClick }: { bill: Bill; onClick: () => void }) {
-  const [hover, setHover] = useState(false);
+function useLongPress(onLongPress: () => void, onClick: () => void) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const fired  = useRef(false);
+
+  const start = useCallback((e: React.PointerEvent) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    fired.current = false;
+    timer.current = setTimeout(() => {
+      fired.current = true;
+      onLongPress();
+    }, LONG_PRESS_MS);
+  }, [onLongPress]);
+
+  const cancel = useCallback((_e?: React.PointerEvent) => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+
+  const end = useCallback((_e?: React.PointerEvent) => {
+    if (timer.current) clearTimeout(timer.current);
+    if (!fired.current) onClick();
+  }, [onClick]);
+
+  return { onPointerDown: start, onPointerUp: end, onPointerCancel: cancel, onPointerLeave: cancel };
+}
+
+function BillRow({
+  bill, selectMode, selected, onLongPress, onSelect, onClick,
+}: {
+  bill: Bill;
+  selectMode: boolean;
+  selected: boolean;
+  onLongPress: () => void;
+  onSelect: () => void;
+  onClick: () => void;
+}) {
+  const [pressing, setPressing] = useState(false);
   const paidCount = bill.participants.filter(p => p.paid).length;
-  const total = bill.participants.length;
-  const allPaid = paidCount === total;
+  const total     = bill.participants.length;
+  const allPaid   = paidCount === total;
+
+  const handlers = useLongPress(onLongPress, selectMode ? onSelect : onClick);
 
   return (
-    <button onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
-      width: '100%', padding: '14px 16px',
-      background: 'white', border: `1px solid ${hover ? 'var(--stone-300)' : 'var(--stone-200)'}`,
-      borderRadius: 18, cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: 12, transition: 'border .15s', textAlign: 'left',
-    }}>
+    <div
+      {...handlers}
+      onPointerDown={e => { setPressing(true); handlers.onPointerDown(e); }}
+      onPointerUp={e => { setPressing(false); handlers.onPointerUp(e); }}
+      onPointerCancel={e => { setPressing(false); handlers.onPointerCancel(e); }}
+      onPointerLeave={e => { setPressing(false); handlers.onPointerLeave(e); }}
+      style={{
+        width: '100%', padding: '14px 16px',
+        background: selected ? 'rgba(251,191,36,0.10)' : 'white',
+        border: `1.5px solid ${selected ? 'var(--amber-400)' : 'var(--stone-200)'}`,
+        borderRadius: 18, cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left',
+        userSelect: 'none', WebkitUserSelect: 'none',
+        transform: pressing ? 'scale(0.98)' : 'scale(1)',
+        transition: 'transform .1s ease, border .15s, background .15s',
+      }}
+    >
+      {selectMode && (
+        <div style={{
+          width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+          border: `2px solid ${selected ? 'var(--amber-400)' : 'var(--stone-300)'}`,
+          background: selected ? 'var(--amber-400)' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all .15s',
+        }}>
+          {selected && <I.Check size={12} stroke={3}/>}
+        </div>
+      )}
+
       <div style={{ display: 'flex' }}>
         {bill.participants.slice(0, 3).map((p, i) => (
           <div key={p.id} style={{ marginLeft: i === 0 ? 0 : -10, border: '2px solid white', borderRadius: '50%' }}>
@@ -34,6 +94,7 @@ function BillRow({ bill, onClick }: { bill: Bill; onClick: () => void }) {
           </div>
         )}
       </div>
+
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--stone-900)', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {bill.description || `Rolê #${bill.billNumber ?? ''}`}
@@ -42,10 +103,11 @@ function BillRow({ bill, onClick }: { bill: Bill; onClick: () => void }) {
           {formatDate(bill.createdAt)} · {formatBRL(bill.totalAmount)}
         </div>
       </div>
+
       <div style={{ fontSize: 11, fontWeight: 600, padding: '5px 10px', borderRadius: 999, background: allPaid ? 'var(--emerald-50)' : 'rgba(251,191,36,0.16)', color: allPaid ? '#047857' : '#92400e', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.04em', flexShrink: 0 }}>
         {paidCount}/{total}
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -61,7 +123,10 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub: st
 
 export default function History() {
   const navigate = useNavigate();
-  const { bills } = useBills();
+  const { bills, deleteBill } = useBills();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const selectMode = selectedIds.size > 0;
 
   const grouped = bills.reduce<[string, Bill[]][]>((acc, b) => {
     const d   = new Date(b.createdAt);
@@ -78,12 +143,31 @@ export default function History() {
     return s + (you ? you.amount : 0);
   }, 0);
 
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function handleLongPress(id: string) {
+    setSelectedIds(new Set([id]));
+  }
+
+  function handleDelete() {
+    selectedIds.forEach(id => deleteBill(id));
+    setSelectedIds(new Set());
+  }
+
+  const n = selectedIds.size;
+
   return (
     <div className="screen-in" style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', background: 'var(--stone-100)' }}>
-      <TopBar onBack={() => navigate('/')} title="Histórico"/>
+      <TopBar onBack={selectMode ? () => setSelectedIds(new Set()) : () => navigate('/')} title={selectMode ? `${n} selecionado${n > 1 ? 's' : ''}` : 'Histórico'}/>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px 40px' }} className="no-scrollbar">
-        {bills.length > 0 && (
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px', paddingBottom: selectMode ? 100 : 40 }} className="no-scrollbar">
+        {bills.length > 0 && !selectMode && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
             <StatCard label="Rolês" value={String(bills.length)} sub="no total"/>
             <StatCard label="Sua parte" value={formatBRL(yourShare)} sub={`de ${formatBRL(totalAll)}`}/>
@@ -106,12 +190,45 @@ export default function History() {
                 {month}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {monthBills.map(b => <BillRow key={b.id} bill={b} onClick={() => navigate(`/role/${b.id}`)}/>)}
+                {monthBills.map(b => (
+                  <BillRow
+                    key={b.id}
+                    bill={b}
+                    selectMode={selectMode}
+                    selected={selectedIds.has(b.id)}
+                    onLongPress={() => handleLongPress(b.id)}
+                    onSelect={() => toggleSelect(b.id)}
+                    onClick={() => navigate(`/role/${b.id}`)}
+                  />
+                ))}
               </div>
             </div>
           ))
         )}
       </div>
+
+      {selectMode && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+          width: '100%', maxWidth: 430, padding: '12px 20px 28px',
+          background: 'linear-gradient(to top, var(--stone-100) 70%, transparent)',
+          display: 'flex', gap: 10,
+        }}>
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            style={{ flex: 1, padding: '14px', borderRadius: 999, border: '1.5px solid var(--stone-300)', background: 'white', fontSize: 14, fontWeight: 600, color: 'var(--stone-700)', cursor: 'pointer' }}
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleDelete}
+            style={{ flex: 2, padding: '14px', borderRadius: 999, border: 0, background: '#dc2626', fontSize: 14, fontWeight: 600, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+          >
+            <I.Trash size={16} stroke={2}/>
+            Excluir {n > 1 ? `${n} rolês` : 'rolê'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
