@@ -4,6 +4,7 @@ const KEYS = {
   bills: 'divide:bills',
   prefs: 'divide:prefs',
   draft: 'divide:draft',
+  billCounter: 'divide:billCounter',
 } as const;
 
 function safeRead<T>(key: string, fallback: T): T {
@@ -51,6 +52,12 @@ export const storage = {
   saveDraft: (draft: BillDraft | null) => {
     if (draft === null) localStorage.removeItem(KEYS.draft);
     else safeWrite(KEYS.draft, draft);
+  },
+
+  nextBillNumber: (): number => {
+    const next = safeRead(KEYS.billCounter, 0) + 1;
+    safeWrite(KEYS.billCounter, next);
+    return next;
   },
 
   clearAll: () => {

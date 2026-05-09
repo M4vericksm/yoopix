@@ -163,7 +163,7 @@ export default function Result() {
                 Cobrança Pix
               </div>
               <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--stone-900)' }}>
-                {bill.receiver.name || 'Pagador'}
+                {bill.receiver.pixKey.value}
               </div>
             </div>
             <div className="serif" style={{ fontSize: 26, fontWeight: 500, color: 'var(--stone-900)', letterSpacing: '-0.01em' }}>
@@ -213,7 +213,7 @@ export default function Result() {
         <div style={{ padding: '0 20px' }}>
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--stone-900)', fontFamily: "'Fraunces', serif", letterSpacing: '-0.01em' }}>
-              {bill.description || 'Rolê'}
+              {bill.description || `Rolê #${bill.billNumber ?? ''}`}
             </div>
             <div style={{ fontSize: 13, color: 'var(--stone-500)', marginTop: 2 }}>
               {formatBRL(bill.totalAmount)} · {bill.participants.length} pessoas

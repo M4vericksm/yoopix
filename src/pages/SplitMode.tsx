@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useBills } from '@/hooks/useBills';
 import { formatBRL, parseBRL } from '@/lib/format';
 import { splitEqual } from '@/lib/split';
+import { storage } from '@/lib/storage';
 import { Button, Segmented, Avatar } from '@/components/ui/primitives';
 import TopBar from '@/components/TopBar';
 import { I } from '@/components/icons';
@@ -62,6 +63,7 @@ export default function SplitMode() {
 
     const bill = {
       id: crypto.randomUUID(),
+      billNumber: storage.nextBillNumber(),
       createdAt: Date.now(),
       description: draft!.description,
       totalAmount: draft!.totalAmount,
