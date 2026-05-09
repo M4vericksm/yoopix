@@ -27,9 +27,7 @@ function HeroCard({ onClick }: { onClick: () => void }) {
       <div style={{ position: 'absolute', top: -20, right: -20, width: 160, height: 160, background: 'var(--amber-400)', borderRadius: '50%', opacity: 0.18 }}/>
       <div style={{ position: 'absolute', top: 10, right: 10, width: 80, height: 80, background: 'var(--amber-400)', borderRadius: '50%', opacity: 0.28 }}/>
       <div style={{ position: 'relative', padding: '28px 28px 32px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 14, background: 'var(--amber-400)', marginBottom: 16 }}>
-          <I.Pix size={22} stroke={2}/>
-        </div>
+        <img src="/favicon.png" style={{ width: 40, height: 40, borderRadius: 12, marginBottom: 16, display: 'block' }} alt=""/>
         <div style={{ fontSize: 22, fontWeight: 500, color: 'white', fontFamily: "'Fraunces', serif", letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 6 }}>
           Novo rolê
         </div>
@@ -92,12 +90,16 @@ export default function Home() {
     <div className="screen-in" style={{ display: 'flex', flexDirection: 'column', minHeight: '100svh', background: 'var(--stone-100)' }}>
       <header style={{ padding: '56px 24px 16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
-          <div className="serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 10 }}>
-            <span style={{ color: 'var(--stone-900)' }}>Yoo</span><span style={{ color: 'var(--amber-500)' }}>pix</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <img src="/favicon.png" style={{ width: 30, height: 30, borderRadius: 8 }} alt="Yoopix"/>
+            <div className="serif" style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.03em', lineHeight: 1 }}>
+              <span style={{ color: 'var(--stone-900)' }}>Yoo</span><span style={{ color: 'var(--amber-500)' }}>pix</span>
+            </div>
           </div>
           <h1 className="serif" style={{ fontSize: 34, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
             {greeting()}
           </h1>
+          <div style={{ fontSize: 14, color: 'var(--stone-500)', marginTop: 4 }}>bora dividir essa conta?</div>
         </div>
         <button onClick={() => navigate('/historico')} style={{ width: 44, height: 44, borderRadius: 22, background: 'white', border: '1px solid var(--stone-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--stone-700)', flexShrink: 0 }}>
           <I.History size={19}/>
