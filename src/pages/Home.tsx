@@ -96,8 +96,7 @@ export default function Home() {
             <span style={{ color: 'var(--stone-900)' }}>Yoo</span><span style={{ color: 'var(--amber-500)' }}>pix</span>
           </div>
           <h1 className="serif" style={{ fontSize: 34, lineHeight: 1.05, color: 'var(--stone-900)', margin: 0, fontWeight: 500, letterSpacing: '-0.02em' }}>
-            {greeting()},<br/>
-            <em style={{ fontStyle: 'italic', color: 'var(--stone-500)', fontWeight: 400 }}>vamo dividir essa conta?</em>
+            {greeting()}
           </h1>
         </div>
         <button onClick={() => navigate('/historico')} style={{ width: 44, height: 44, borderRadius: 22, background: 'white', border: '1px solid var(--stone-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--stone-700)', flexShrink: 0 }}>
