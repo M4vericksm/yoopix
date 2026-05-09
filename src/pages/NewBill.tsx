@@ -2,16 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrefs } from '@/hooks/usePrefs';
 import { parseBRL } from '@/lib/format';
+import { detectPixKeyType, PIX_TYPE_LABEL } from '@/lib/validators';
 import { Button, Input } from '@/components/ui/primitives';
 import TopBar from '@/components/TopBar';
-import type { BillDraft, PixKeyType } from '@/types';
-
-const PIX_TYPES: { id: PixKeyType; label: string; placeholder: string }[] = [
-  { id: 'phone',  label: 'Telefone',  placeholder: '11999998888' },
-  { id: 'email',  label: 'E-mail',    placeholder: 'joao@email.com' },
-  { id: 'cpf',    label: 'CPF',       placeholder: '000.000.000-00' },
-  { id: 'random', label: 'Aleatória', placeholder: 'xxxxxxxx-xxxx-...' },
-];
+import type { BillDraft } from '@/types';
 
 function formatAmountInput(raw: string): string {
   const digits = raw.replace(/\D/g, '').slice(0, 9);
@@ -27,9 +21,10 @@ export default function NewBill() {
   const [amountDisplay, setAmountDisplay] = useState('');
   const [description, setDescription]     = useState('');
   const [name, setName]                   = useState(prefs.defaultName ?? '');
-  const [pixType, setPixType]             = useState<PixKeyType>(prefs.defaultPixKey?.type ?? 'phone');
   const [pixKey, setPixKey]               = useState(prefs.defaultPixKey?.value ?? '');
   const [errors, setErrors]               = useState<Record<string, string>>({});
+
+  const detectedType = detectPixKeyType(pixKey);
 
   const amountCents = parseBRL(amountDisplay);
 
@@ -42,17 +37,19 @@ export default function NewBill() {
     const errs: Record<string, string> = {};
     if (!amountCents || amountCents < 1) errs.amount = 'Informe o valor total';
     if (!pixKey.trim()) errs.pixKey = 'Informe a chave Pix';
+    else if (!detectedType) errs.pixKey = 'Chave não reconhecida';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
   function handleNext() {
     if (!validate()) return;
-    savePrefs({ defaultName: name.trim() || undefined, defaultPixKey: { type: pixType, value: pixKey.trim() } });
+    const type = detectedType!;
+    savePrefs({ defaultName: name.trim() || undefined, defaultPixKey: { type, value: pixKey.trim() } });
     const draft: BillDraft = {
       totalAmount: amountCents,
       description: description.trim(),
-      receiver: { name: name.trim() || undefined, city: 'BRASIL', pixKey: { type: pixType, value: pixKey.trim() } },
+      receiver: { name: name.trim() || undefined, city: 'BRASIL', pixKey: { type, value: pixKey.trim() } },
     };
     navigate('/novo/dividir', { state: { draft } });
   }
@@ -96,33 +93,22 @@ export default function NewBill() {
             placeholder="Ex: Churrasco, Bar, Viagem..."
           />
 
-          {/* Pix key type */}
           <div>
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--stone-600)', marginBottom: 8 }}>Tipo de chave Pix</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-              {PIX_TYPES.map(t => {
-                const active = t.id === pixType;
-                return (
-                  <button key={t.id} onClick={() => setPixType(t.id)} style={{
-                    padding: '9px 4px', border: 0,
-                    borderRadius: 10,
-                    background: active ? 'var(--stone-900)' : 'var(--stone-100)',
-                    color: active ? 'white' : 'var(--stone-600)',
-                    fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all .15s',
-                    fontFamily: "'Inter', sans-serif",
-                  }}>{t.label}</button>
-                );
-              })}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--stone-600)' }}>Chave Pix</div>
+              {detectedType && (
+                <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--amber-500)', background: 'rgba(251,191,36,0.12)', padding: '2px 8px', borderRadius: 999 }}>
+                  {PIX_TYPE_LABEL[detectedType]}
+                </span>
+              )}
             </div>
+            <Input
+              value={pixKey}
+              onChange={e => setPixKey(e.target.value)}
+              placeholder="Telefone, e-mail, CPF ou chave aleatória"
+              error={errors.pixKey}
+            />
           </div>
-
-          <Input
-            label="Chave Pix"
-            value={pixKey}
-            onChange={e => setPixKey(e.target.value)}
-            placeholder={PIX_TYPES.find(t => t.id === pixType)?.placeholder}
-            error={errors.pixKey}
-          />
 
           <div style={{ background: 'white', borderRadius: 16, padding: '16px', border: '1px solid var(--stone-200)' }}>
             <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--stone-500)', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", marginBottom: 14 }}>
