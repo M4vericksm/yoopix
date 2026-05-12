@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { I } from '@/components/icons';
 
@@ -134,25 +134,75 @@ export function Segmented({
 }
 
 // ─── Sheet (bottom drawer) ────────────────────────────────
+const SWIPE_CLOSE_THRESHOLD = 120;
+
 export function Sheet({ open, onClose, children }: { open: boolean; onClose: () => void; children: ReactNode }) {
-  if (!open) return null;
+  const [dragY, setDragY]     = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [closing, setClosing]  = useState(false);
+  const startY = useRef(0);
+
+  useEffect(() => {
+    if (!open) { setDragY(0); setClosing(false); }
+  }, [open]);
+
+  function onPointerDown(e: React.PointerEvent) {
+    startY.current = e.clientY;
+    setDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragging) return;
+    setDragY(Math.max(0, e.clientY - startY.current));
+  }
+
+  function onPointerUp() {
+    setDragging(false);
+    if (dragY > SWIPE_CLOSE_THRESHOLD) {
+      setClosing(true);
+      setDragY(window.innerHeight);
+      setTimeout(onClose, 280);
+    } else {
+      setDragY(0);
+    }
+  }
+
+  if (!open && !closing) return null;
+
   return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 50,
-      background: 'rgba(28,25,23,0.4)',
-      backdropFilter: 'blur(2px)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        width: '100%', maxWidth: 430, background: 'white',
-        borderTopLeftRadius: 28, borderTopRightRadius: 28,
-        maxHeight: '85dvh',
-        display: 'flex', flexDirection: 'column',
-        animation: 'slideUp .3s cubic-bezier(.2,.7,.3,1)',
-      }}>
-        <div onClick={onClose} style={{ padding: '12px 0 8px', flexShrink: 0, cursor: 'pointer' }}>
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 50,
+        background: `rgba(28,25,23,${Math.max(0, 0.4 - dragY / 800)})`,
+        backdropFilter: 'blur(2px)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 430, background: 'white',
+          borderTopLeftRadius: 28, borderTopRightRadius: 28,
+          maxHeight: '85dvh',
+          display: 'flex', flexDirection: 'column',
+          transform: `translateY(${dragY}px)`,
+          transition: dragging ? 'none' : 'transform .28s cubic-bezier(.2,.7,.3,1)',
+          animation: dragY === 0 && !dragging && !closing ? 'slideUp .3s cubic-bezier(.2,.7,.3,1)' : 'none',
+        }}
+      >
+        {/* drag handle */}
+        <div
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          style={{ padding: '12px 0 8px', flexShrink: 0, cursor: 'grab', touchAction: 'none', userSelect: 'none' }}
+        >
           <div style={{ width: 36, height: 4, background: 'var(--stone-300)', borderRadius: 2, margin: '0 auto' }}/>
         </div>
+
         <div style={{ overflowY: 'auto', paddingBottom: 32 }} className="no-scrollbar">
           {children}
         </div>
