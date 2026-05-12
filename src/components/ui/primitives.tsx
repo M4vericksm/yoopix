@@ -146,11 +146,16 @@ export function Sheet({ open, onClose, children }: { open: boolean; onClose: () 
       <div onClick={e => e.stopPropagation()} style={{
         width: '100%', maxWidth: 430, background: 'white',
         borderTopLeftRadius: 28, borderTopRightRadius: 28,
-        padding: '8px 0 32px',
+        maxHeight: '85dvh',
+        display: 'flex', flexDirection: 'column',
         animation: 'slideUp .3s cubic-bezier(.2,.7,.3,1)',
       }}>
-        <div style={{ width: 36, height: 4, background: 'var(--stone-300)', borderRadius: 2, margin: '8px auto 16px' }}/>
-        {children}
+        <div onClick={onClose} style={{ padding: '12px 0 8px', flexShrink: 0, cursor: 'pointer' }}>
+          <div style={{ width: 36, height: 4, background: 'var(--stone-300)', borderRadius: 2, margin: '0 auto' }}/>
+        </div>
+        <div style={{ overflowY: 'auto', paddingBottom: 32 }} className="no-scrollbar">
+          {children}
+        </div>
       </div>
     </div>
   );
