@@ -198,7 +198,7 @@ export function Sheet({ open, onClose, children }: { open: boolean; onClose: () 
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
-          style={{ padding: '12px 0 8px', flexShrink: 0, cursor: 'grab', touchAction: 'none', userSelect: 'none' }}
+          style={{ padding: '20px 0 20px', flexShrink: 0, cursor: 'grab', touchAction: 'none', userSelect: 'none' }}
         >
           <div style={{ width: 36, height: 4, background: 'var(--stone-300)', borderRadius: 2, margin: '0 auto' }}/>
         </div>
