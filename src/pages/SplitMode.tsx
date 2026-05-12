@@ -9,7 +9,39 @@ import TopBar from '@/components/TopBar';
 import { I } from '@/components/icons';
 import type { BillDraft, Participant } from '@/types';
 
-type DraftP = { id: string; name: string; amount: number };
+type DraftP = { id: string; name: string; amount: number; touched: boolean };
+
+function CustomAmountInput({ p, sug, hasRemaining, onFocus, onChange }: {
+  p: DraftP; sug: number; hasRemaining: boolean;
+  onFocus: () => void; onChange: (raw: string) => void;
+}) {
+  const isSug   = !p.touched && hasRemaining && sug > 0;
+  const dispVal = p.touched
+    ? (p.amount > 0 ? (p.amount / 100).toFixed(2).replace('.', ',') : '')
+    : (isSug ? (sug / 100).toFixed(2).replace('.', ',') : '');
+  return (
+    <div style={{ position: 'relative', width: 110 }}>
+      <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: isSug ? 'var(--amber-400)' : 'var(--stone-400)', fontSize: 12 }}>R$</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={dispVal}
+        onFocus={onFocus}
+        onChange={e => onChange(e.target.value)}
+        placeholder="0,00"
+        style={{
+          width: '100%', paddingLeft: 28, paddingRight: 8, paddingTop: 8, paddingBottom: 8,
+          border: `1px solid ${isSug ? 'rgba(251,191,36,0.4)' : 'var(--stone-200)'}`,
+          borderRadius: 8,
+          background: isSug ? 'rgba(251,191,36,0.06)' : 'var(--stone-50)',
+          fontSize: 14, fontFamily: "'Inter', sans-serif",
+          color: isSug ? 'var(--amber-500)' : 'var(--stone-900)',
+          outline: 0, boxSizing: 'border-box',
+        }}
+      />
+    </div>
+  );
+}
 
 export default function SplitMode() {
   const navigate  = useNavigate();
@@ -21,9 +53,9 @@ export default function SplitMode() {
   const [mode, setMode]               = useState<'equal' | 'custom'>('equal');
   const [count, setCount]             = useState(3);
   const [participants, setParticipants] = useState<DraftP[]>([
-    { id: 'p0', name: 'Você', amount: 0 },
-    { id: 'p1', name: '', amount: 0 },
-    { id: 'p2', name: '', amount: 0 },
+    { id: 'p0', name: 'Você', amount: 0, touched: false },
+    { id: 'p1', name: '', amount: 0, touched: false },
+    { id: 'p2', name: '', amount: 0, touched: false },
   ]);
 
   useEffect(() => {
@@ -31,7 +63,7 @@ export default function SplitMode() {
       if (curr.length === count) return curr;
       if (curr.length < count) {
         return [...curr, ...Array.from({ length: count - curr.length }, (_, i) => ({
-          id: `p${curr.length + i}-${Date.now()}`, name: '', amount: 0,
+          id: `p${curr.length + i}-${Date.now()}`, name: '', amount: 0, touched: false,
         }))];
       }
       return curr.slice(0, count);
@@ -45,14 +77,32 @@ export default function SplitMode() {
 
   const equalAmount = Math.floor(draft.totalAmount / count);
   const remainder   = draft.totalAmount - equalAmount * count;
-  const customSum   = participants.reduce((s, p) => s + p.amount, 0);
-  const customDiff  = draft.totalAmount - customSum;
-  const valid       = mode === 'equal' || customDiff === 0;
+
+  // custom split: suggestion for untouched participants
+  const touchedSum     = participants.filter(p => p.touched).reduce((s, p) => s + p.amount, 0);
+  const untouchedIdxs  = participants.map((_, i) => i).filter(i => !participants[i].touched);
+  const remaining      = draft.totalAmount - touchedSum;
+  const baseSug        = untouchedIdxs.length > 0 ? Math.floor(remaining / untouchedIdxs.length) : 0;
+
+  function suggestion(idx: number): number {
+    const pos = untouchedIdxs.indexOf(idx);
+    if (pos === -1) return 0;
+    if (pos === untouchedIdxs.length - 1) return remaining - baseSug * (untouchedIdxs.length - 1);
+    return baseSug;
+  }
+
+  function effectiveAmount(idx: number): number {
+    return participants[idx].touched ? participants[idx].amount : suggestion(idx);
+  }
+
+  const customSum  = participants.reduce((s, _, i) => s + effectiveAmount(i), 0);
+  const customDiff = draft.totalAmount - customSum;
+  const valid      = mode === 'equal' || (customDiff === 0 && remaining >= 0);
 
   function handleGenerate() {
     const amounts = mode === 'equal'
       ? splitEqual(draft!.totalAmount, count)
-      : participants.map(p => ({ amount: p.amount }));
+      : participants.map((_, i) => ({ amount: effectiveAmount(i) }));
 
     const final: Participant[] = participants.map((p, i) => ({
       id: p.id,
@@ -82,7 +132,19 @@ export default function SplitMode() {
 
   function setParticipantAmount(idx: number, raw: string) {
     const cents = parseBRL(raw);
-    setParticipants(curr => curr.map((p, i) => i === idx ? { ...p, amount: cents } : p));
+    setParticipants(curr => curr.map((p, i) =>
+      i === idx ? { ...p, amount: cents, touched: cents > 0 } : p
+    ));
+  }
+
+  function focusSuggested(idx: number) {
+    // on focus of a suggestion field, lock in the suggestion so user edits from it
+    if (!participants[idx].touched) {
+      const sug = suggestion(idx);
+      setParticipants(curr => curr.map((p, i) =>
+        i === idx ? { ...p, amount: sug, touched: true } : p
+      ));
+    }
   }
 
   return (
@@ -173,17 +235,13 @@ export default function SplitMode() {
                 style={{ flex: 1, background: 'transparent', border: 0, outline: 0, fontSize: 15, color: 'var(--stone-900)', fontFamily: "'Inter', sans-serif", minWidth: 0 }}
               />
               {mode === 'custom' ? (
-                <div style={{ position: 'relative', width: 110 }}>
-                  <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--stone-400)', fontSize: 12 }}>R$</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={p.amount > 0 ? (p.amount / 100).toFixed(2).replace('.', ',') : ''}
-                    onChange={e => setParticipantAmount(i, e.target.value)}
-                    placeholder="0,00"
-                    style={{ width: '100%', paddingLeft: 28, paddingRight: 8, paddingTop: 8, paddingBottom: 8, border: '1px solid var(--stone-200)', borderRadius: 8, background: 'var(--stone-50)', fontSize: 14, fontFamily: "'Inter', sans-serif", color: 'var(--stone-900)', outline: 0, boxSizing: 'border-box' }}
-                  />
-                </div>
+                <CustomAmountInput
+                  p={p}
+                  sug={suggestion(i)}
+                  hasRemaining={remaining > 0}
+                  onFocus={() => focusSuggested(i)}
+                  onChange={raw => setParticipantAmount(i, raw)}
+                />
               ) : (
                 <div style={{ fontSize: 14, color: 'var(--stone-500)', fontFamily: "'Fraunces', serif", flexShrink: 0 }}>
                   {formatBRL(i === count - 1 ? equalAmount + remainder : equalAmount)}
