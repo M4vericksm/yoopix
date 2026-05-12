@@ -133,7 +133,7 @@ export default function SplitMode() {
   function setParticipantAmount(idx: number, raw: string) {
     const cents = parseBRL(raw);
     setParticipants(curr => curr.map((p, i) =>
-      i === idx ? { ...p, amount: cents, touched: cents > 0 } : p
+      i === idx ? { ...p, amount: cents } : p
     ));
   }
 
