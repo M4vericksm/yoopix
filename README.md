@@ -1,73 +1,62 @@
-# React + TypeScript + Vite
+# Yoopix
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+App para **dividir contas e cobrar via Pix** sem fricção. Você cria uma conta a
+pagar, define como dividir entre as pessoas e o Yoopix gera o **código Pix
+(copia e cola)**, o **QR Code** e uma **mensagem pronta para o WhatsApp** — é só
+enviar para quem deve.
 
-Currently, two official plugins are available:
+🔗 **Online:** [yoopix.com.br](https://yoopix.com.br)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Funcionalidades
 
-## React Compiler
+- Criar uma cobrança informando a chave Pix do recebedor
+- Detecção automática do tipo de chave Pix (CPF, e-mail, telefone, aleatória)
+- Divisão **igualitária** ou **personalizada** por participante
+- Sugestão automática do valor restante na divisão personalizada
+- Geração do **Pix BR Code** (copia e cola) e do **QR Code**
+- Compartilhamento da cobrança direto no **WhatsApp**
+- **Histórico** de cobranças salvo no dispositivo
+- **PWA**: instalável e funciona como um app no celular
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Stack
 
-## Expanding the ESLint configuration
+- **React 19** + **TypeScript** + **Vite**
+- **Tailwind CSS** para o estilo
+- **React Router** para navegação
+- **React Hook Form** + **Zod** para formulários e validação
+- **pix-utils** (geração do BR Code) e **qrcode** (QR)
+- **vite-plugin-pwa** para o app instalável
+- Deploy na **Netlify**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Como rodar
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev      # ambiente de desenvolvimento
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Outros scripts:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build    # build de produção
+npm run preview  # pré-visualiza o build
+npm run lint     # análise estática (ESLint)
 ```
+
+## Estrutura
+
+```
+src/
+├── pages/        # Home, NewBill, SplitMode, Result, History
+├── components/   # TopBar, PixQR, ícones e primitivos de UI
+├── hooks/        # useBills, useDraft, usePrefs
+├── lib/          # pix, split, format, storage, validators
+└── types/        # tipos compartilhados
+```
+
+## Como funciona a divisão
+
+A lógica de divisão (`src/lib/split.ts`) distribui o valor total entre os
+participantes — em partes iguais ou com valores personalizados — e o módulo de
+Pix (`src/lib/pix.ts`) monta o payload do BR Code a partir da chave e do valor
+de cada pessoa, que é então renderizado como texto (copia e cola) e QR Code.
