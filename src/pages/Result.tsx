@@ -84,7 +84,9 @@ export default function Result() {
     return value;
   }
 
-  const brCode = useMemo(() => {
+  // Calculado direto (sem useMemo): este trecho vem depois do retorno antecipado de "rolê não encontrado",
+  // e um hook aqui mudaria a ordem dos hooks entre renderizações.
+  const brCode = (() => {
     try {
       return generateBRCode({
         pixKey: selectedP.amount > 0 ? normalizePixKey(billRef.receiver.pixKey.type, billRef.receiver.pixKey.value) : '',
@@ -96,7 +98,7 @@ export default function Result() {
     } catch {
       return '';
     }
-  }, [selectedP, billRef]);
+  })();
 
   function handleCopy() {
     navigator.clipboard.writeText(brCode).then(() => {
@@ -157,16 +159,17 @@ export default function Result() {
         {/* QR card */}
         <div style={{ background: 'white', borderRadius: 24, padding: '20px 20px 24px', border: '1px solid var(--stone-200)' }}>
           {/* Receipt header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 14, borderBottom: '1px dashed var(--stone-200)' }}>
-            <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 16, paddingBottom: 14, borderBottom: '1px dashed var(--stone-200)' }}>
+            <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--stone-400)', fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, marginBottom: 4 }}>
                 Cobrança Pix
               </div>
-              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--stone-900)' }}>
+              {/* Chave longa corta com reticências; a chave inteira aparece embaixo do QR. */}
+              <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--stone-900)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {bill.receiver.pixKey.value}
               </div>
             </div>
-            <div className="serif" style={{ fontSize: 26, fontWeight: 500, color: 'var(--stone-900)', letterSpacing: '-0.01em' }}>
+            <div className="serif" style={{ fontSize: 26, fontWeight: 500, color: 'var(--stone-900)', letterSpacing: '-0.01em', whiteSpace: 'nowrap', flexShrink: 0 }}>
               {formatBRL(selectedP.amount)}
             </div>
           </div>
